@@ -13,6 +13,15 @@
         <label for="destination_location">Destination:</label>
         <input type="text" id="destination_location" name="destination_location" required>
         <br>
+        <label for="time_filter">Time Filter:</label>
+        <select id="time_filter" name="time_filter">
+            <option value="all_time">All Time</option>
+            <option value="past_7_days">Past 7 Days</option>
+            <option value="past_1_month">Past 1 Month</option>
+            <option value="past_6_months">Past 6 Months</option>
+            <option value="past_1_year">Past 1 Year</option>
+        </select>
+        <br>
         <button type="submit">Get Route</button>
     </form>
 </body>
