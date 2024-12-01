@@ -33,6 +33,39 @@
             </mat-select>
           </mat-form-field>
   
+          <!-- Demographic Information -->
+          <div class="border-t pt-4 mt-4">
+            <h3 class="text-lg font-semibold mb-4">Personal Information</h3>
+            
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Age</mat-label>
+              <input matInput type="number" formControlName="age" min="0" max="100">
+              @if (routeForm.get('age')?.touched) {
+                <mat-error>{{getErrorMessage('age')}}</mat-error>
+              }
+            </mat-form-field>
+  
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Gender</mat-label>
+              <mat-select formControlName="gender">
+                <mat-option value="M">Male</mat-option>
+                <mat-option value="F">Female</mat-option>
+              </mat-select>
+              @if (routeForm.get('gender')?.touched) {
+                <mat-error>{{getErrorMessage('gender')}}</mat-error>
+              }
+            </mat-form-field>
+  
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Travel Time</mat-label>
+              <mat-select formControlName="travelTime">
+                @for (time of timeOptions; track time.value) {
+                  <mat-option [value]="time.value">{{time.label}}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+  
           <button mat-raised-button 
                   color="primary" 
                   class="w-full" 
@@ -47,6 +80,15 @@
               Get Route
             }
           </button>
+  
+          @if (error) {
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              {{error}}
+            </div>
+          }
+  
+          <!-- Top Crimes Card Component -->
+          <app-top-crimes [crimes]="topCrimes"></app-top-crimes>
         </form>
       </div>
   

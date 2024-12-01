@@ -8,22 +8,63 @@
       </app-map-view>
     </div>
   
-    <!-- Only show route information if there are routes -->
+    <!-- Route Information Table -->
     @if (routes.length > 0) {
-      <div>
-        <h3 class="text-xl font-bold mb-4">Route Information</h3>
-        @for (route of routes; track $index) {
-          <div class="border rounded p-4 mb-4" 
-               [style.border-color]="getRouteColor($index)"
-               [id]="'route-info-' + $index">
-            <h4 class="font-bold mb-2" [style.color]="getRouteColor($index)">Route {{$index + 1}}</h4>
-            <div>
-              <p><span class="text-gray-600">Crime Score: </span>{{route.crime_score}}</p>
-              <p><span class="text-gray-600">Distance: </span>{{route.distance/1000 | number:'1.2-2'}} km</p>
-              <p><span class="text-gray-600">Duration: </span>{{route.duration/60 | number:'1.2-2'}} min</p>
-            </div>
-          </div>
-        }
+      <div class="mt-4">
+        <!-- Centered Title -->
+        <h3 class="text-xl font-bold text-center mb-4">Route Information</h3>
+  
+        <div class="border rounded-lg overflow-hidden">
+          <table mat-table [dataSource]="dataSource" matSort class="w-full">
+            <!-- Route ID Column -->
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef>Route</th>
+              <td mat-cell *matCellDef="let route" 
+                  [style.background-color]="getRouteBackgroundColor(route.id - 1)">
+                {{route.id}}
+              </td>
+            </ng-container>
+  
+            <!-- Crime Score Column -->
+            <ng-container matColumnDef="crimeScore">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Crime Score</th>
+              <td mat-cell *matCellDef="let route" 
+                  [style.background-color]="getRouteBackgroundColor(route.id - 1)">
+                {{route.crimeScore.toFixed(4)}}
+              </td>
+            </ng-container>
+  
+            <!-- Distance Column -->
+            <ng-container matColumnDef="distance">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Distance</th>
+              <td mat-cell *matCellDef="let route"
+                  [style.background-color]="getRouteBackgroundColor(route.id - 1)">
+                {{route.distance.toFixed(2)}} km
+              </td>
+            </ng-container>
+  
+            <!-- Duration Column -->
+            <ng-container matColumnDef="duration">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Duration</th>
+              <td mat-cell *matCellDef="let route"
+                  [style.background-color]="getRouteBackgroundColor(route.id - 1)">
+                {{route.duration.toFixed(2)}} min
+              </td>
+            </ng-container>
+  
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row 
+                *matRowDef="let row; columns: displayedColumns;"
+                [id]="'route-info-' + (row.id - 1)"
+                class="transition-colors duration-150">
+            </tr>
+          </table>
+        </div>
+  
+        <!-- Top Crimes Component -->
+        <div class="mt-6">
+          <app-top-crimes [crimes]="topCrimes"></app-top-crimes>
+        </div>
       </div>
     }
   </div>

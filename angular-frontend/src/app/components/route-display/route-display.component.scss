@@ -1,0 +1,30 @@
+:host {
+    .mat-mdc-table {
+      width: 100%;
+    }
+  
+    .mat-mdc-header-cell {
+      background-color: #fafafa;
+      font-weight: 600;
+      color: #374151;
+      font-size: 14px;
+      padding: 16px;
+    }
+  
+    .mat-mdc-cell {
+      font-size: 14px;
+      color: #4b5563;
+      padding: 16px;
+    }
+  
+    // Left-align column headers and content
+    .mat-mdc-header-cell,
+    .mat-mdc-cell {
+      text-align: left;
+    }
+  
+    // Keep the Route column centered
+    .mat-column-id {
+      text-align: center;
+    }
+  }
