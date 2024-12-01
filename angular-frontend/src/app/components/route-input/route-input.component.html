@@ -1,0 +1,69 @@
+<div class="container mx-auto p-4">
+    <h2 class="text-2xl font-bold mb-4">TravelAware</h2>
+    <p class="text-gray-600 mb-6">Your commute safety assistant</p>
+    
+    <div class="space-y-4 mb-6">
+      <div>
+        <label class="block mb-2">Start Location:</label>
+        <input 
+          type="text" 
+          [(ngModel)]="startLocation" 
+          class="w-full p-2 border rounded"
+          placeholder="Enter start location"
+          [disabled]="isLoading">
+      </div>
+  
+      <div>
+        <label class="block mb-2">Destination:</label>
+        <input 
+          type="text" 
+          [(ngModel)]="destinationLocation" 
+          class="w-full p-2 border rounded"
+          placeholder="Enter destination"
+          [disabled]="isLoading">
+      </div>
+  
+      <div>
+        <label class="block mb-2">Time Filter:</label>
+        <select 
+          [(ngModel)]="timeFilter" 
+          class="w-full p-2 border rounded"
+          [disabled]="isLoading">
+          <option value="all_time">All Time</option>
+          <option value="past_7_days">Past 7 Days</option>
+          <option value="past_1_month">Past Month</option>
+          <option value="past_6_months">Past 6 Months</option>
+          <option value="past_1_year">Past Year</option>
+        </select>
+      </div>
+  
+      <button 
+        (click)="getRoute()" 
+        class="w-full bg-blue-500 text-white p-3 rounded hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed"
+        [disabled]="isLoading">
+        Get Route
+      </button>
+    </div>
+  
+    @if (error) {
+      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        {{error}}
+      </div>
+    }
+  
+    @if (isLoading) {
+      <div class="flex items-center justify-center p-8">
+        <div class="text-center">
+          <div class="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-500 mb-4"></div>
+          <p class="text-gray-600">Calculating routes and analyzing crime data...</p>
+        </div>
+      </div>
+    }
+  
+    <!-- Always show map container, with or without routes -->
+    <app-route-display 
+      [routes]="routeData?.routes || []"
+      [startLocation]="startLocation"
+      [destinationLocation]="destinationLocation">
+    </app-route-display>
+  </div>

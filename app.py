@@ -1,14 +1,18 @@
 import pandas as pd
 import numpy as np
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_from_directory
 import requests
 import folium
 from geopy.distance import geodesic
 import torch
 from tqdm import tqdm
 from datetime import datetime, timedelta
+from flask_cors import CORS
+
 
 app = Flask(__name__)
+CORS(app)
+
 
 MAPBOX_ACCESS_TOKEN = 'pk.eyJ1Ijoic2ViYXN0aWFuYWwiLCJhIjoiY20zZ2wxajlhMDVuejJrcHRxbjZqYjd1ZSJ9.UuDU367Lnq-1vP260Xjygg'
 RISK_LEVELS = {
@@ -33,36 +37,67 @@ last_date = datetime(2024, 10, 31)
 def index():
     return render_template('index.html')
 
+
 @app.route('/get_route', methods=['POST'])
 def get_route():
-    start_location = request.form.get('start_location')
-    destination_location = request.form.get('destination_location')
-    time_filter = request.form.get('time_filter', 'all_time')  # Get the time filter from the form
-    
-    start_coords = geocode_location(start_location)
-    end_coords = geocode_location(destination_location)
-    if not start_coords or not end_coords:
-        return jsonify({"error": "Invalid locations."}), 400
+    try:
+        data = request.get_json()
+        start_location = data.get('start_location')
+        destination_location = data.get('destination_location')
+        time_filter = data.get('time_filter', 'all_time')
 
-    routes, route_info = get_directions(start_coords, end_coords)
-    if not routes:
-        return jsonify({"error": "No routes found."}), 400
+        start_coords = geocode_location(start_location)
+        end_coords = geocode_location(destination_location)
+        
+        if not start_coords or not end_coords:
+            return jsonify({
+                "error": "Invalid locations."
+            }), 400
 
-    # Filter the crime data based on the time filter
-    filtered_crime_data = filter_crime_data_by_time(time_filter)
-    
-    # Calculate the total route distance (in meters)
-    route_distances = [route['distance'] for route in route_info]
-    route_durations = [route['duration'] for route in route_info]  # Duration in seconds
-    
-    # Calculate the crime scores (higher score = more dangerous)
-    crime_scores = calculate_crime_scores(routes, filtered_crime_data, route_distances)
-    
-    # Generate the map
-    route_map = plot_route_on_map(start_coords, end_coords, routes, crime_scores, route_distances, route_durations)
-    route_map.save("templates/map.html")
+        routes, route_info = get_directions(start_coords, end_coords)
+        if not routes:
+            return jsonify({
+                "error": "No routes found."
+            }), 400
 
-    return render_template('map.html', crime_scores=crime_scores, route_distances=route_distances, route_durations=route_durations)
+        filtered_crime_data = filter_crime_data_by_time(time_filter)
+        route_distances = [route['distance'] for route in route_info]
+        route_durations = [route['duration'] for route in route_info]
+        crime_scores = calculate_crime_scores(routes, filtered_crime_data, route_distances)
+
+        response_data = {
+            "routes": [{
+                "coordinates": route,
+                "crime_score": score,
+                "distance": distance,
+                "duration": duration
+            } for route, score, distance, duration in zip(routes, crime_scores, route_distances, route_durations)],
+            "crime_scores": crime_scores,
+            "route_distances": route_distances,
+            "route_durations": route_durations
+        }
+
+        return jsonify(response_data), 200
+
+    except Exception as e:
+        print(f"Error in get_route: {str(e)}")
+        return jsonify({
+            "error": str(e)
+        }), 500
+    
+@app.route('/map')
+def serve_map():
+    # Add CORS headers
+    response = send_from_directory('templates', 'map.html')
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
+
+@app.after_request
+def add_header(response):
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '-1'
+    return response
 
 def geocode_location(location):
     geocode_url = f"https://api.mapbox.com/geocoding/v5/mapbox.places/{location}.json"
