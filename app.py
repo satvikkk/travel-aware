@@ -8,7 +8,7 @@ import torch
 from tqdm import tqdm
 from datetime import datetime, timedelta
 from flask_cors import CORS
-
+from collections import Counter
 
 app = Flask(__name__)
 CORS(app)
@@ -36,7 +36,6 @@ last_date = datetime(2024, 10, 31)
 @app.route('/')
 def index():
     return render_template('index.html')
-
 
 @app.route('/get_route', methods=['POST'])
 def get_route():
@@ -98,6 +97,40 @@ def add_header(response):
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '-1'
     return response
+
+
+def get_top_crimes(data, age, gender, travel_time):
+
+    # Categorize age into 10-year intervals
+    age_group_start = (age // 10) * 10
+    age_group_end = age_group_start + 9
+
+    # Filter data by age group (Vict Age is 0 for missing data)
+    filtered_data = data[(data['Vict Age'] >= age_group_start) & (data['Vict Age'] <= age_group_end)]
+
+    # Filter data by gender
+    filtered_data = filtered_data[filtered_data['Vict Sex'] == gender]
+
+    # Adjust for the 12 PM fallback spike
+    if travel_time == 1200:
+        # Remove all entries with time set at the fallback (e.g., 1200 hours)
+        filtered_data = filtered_data[filtered_data['TIME OCC'] != 1200]
+    else:
+        # Filter data by the time of travel (e.g., hour matching)
+        filtered_data = filtered_data[(filtered_data['TIME OCC'] // 100 == travel_time // 100)]
+
+    # Sort by priority (assume high-priority crimes are in Part 1, but this can be adjusted)
+    filtered_data = filtered_data.sort_values(by=['Part 1-2'], ascending=False)
+
+    # Extract the top 100 coordinates with their categories
+    top_coordinates = filtered_data.head(100)['Category'].values.tolist()
+
+    freq_dict = Counter(top_coordinates)
+
+    top_three = freq_dict.most_common(3)
+
+    return top_three
+
 
 def geocode_location(location):
     geocode_url = f"https://api.mapbox.com/geocoding/v5/mapbox.places/{location}.json"
@@ -177,7 +210,11 @@ def get_crime_score_bulk(route_coords, crime_data, buffer_miles=0.1):
                 (crime_data['LAT'] == crime_coords[0].item()) & (crime_data['LON'] == crime_coords[1].item()),
                 'Category'
             ].values[0]
-            total_risk += RISK_LEVELS.get(crime_category, 0)
+            tcr_1 = get_top_crimes(crime_data, age=25, gender="M", travel_time=2130) 
+            if crime_category in tcr_1:
+                total_risk += RISK_LEVELS.get(crime_category, 0)*1.2
+            else:
+                total_risk += RISK_LEVELS.get(crime_category, 0)
     
     return total_risk.item()
 
