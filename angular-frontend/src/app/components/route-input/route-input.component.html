@@ -2,68 +2,62 @@
     <h2 class="text-2xl font-bold mb-4">TravelAware</h2>
     <p class="text-gray-600 mb-6">Your commute safety assistant</p>
     
-    <div class="space-y-4 mb-6">
-      <div>
-        <label class="block mb-2">Start Location:</label>
-        <input 
-          type="text" 
-          [(ngModel)]="startLocation" 
-          class="w-full p-2 border rounded"
-          placeholder="Enter start location"
-          [disabled]="isLoading">
+    <div class="flex flex-col lg:flex-row gap-6">
+      <!-- Form Section -->
+      <div class="lg:w-1/3">
+        <form [formGroup]="routeForm" (ngSubmit)="getRoute()" class="space-y-4">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Start Location</mat-label>
+            <input matInput formControlName="startLocation" placeholder="Enter start location">
+            @if (routeForm.get('startLocation')?.touched) {
+              <mat-error>{{getErrorMessage('startLocation')}}</mat-error>
+            }
+          </mat-form-field>
+  
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Destination</mat-label>
+            <input matInput formControlName="destinationLocation" placeholder="Enter destination">
+            @if (routeForm.get('destinationLocation')?.touched) {
+              <mat-error>{{getErrorMessage('destinationLocation')}}</mat-error>
+            }
+          </mat-form-field>
+  
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Time Filter</mat-label>
+            <mat-select formControlName="timeFilter">
+              <mat-option value="all_time">All Time</mat-option>
+              <mat-option value="past_7_days">Past 7 Days</mat-option>
+              <mat-option value="past_1_month">Past Month</mat-option>
+              <mat-option value="past_6_months">Past 6 Months</mat-option>
+              <mat-option value="past_1_year">Past Year</mat-option>
+            </mat-select>
+          </mat-form-field>
+  
+          <button mat-raised-button 
+                  color="primary" 
+                  class="w-full" 
+                  type="submit"
+                  [disabled]="isLoading">
+            @if (isLoading) {
+              <div class="flex items-center justify-center">
+                <mat-spinner diameter="20" class="mr-2"></mat-spinner>
+                Calculating Routes...
+              </div>
+            } @else {
+              Get Route
+            }
+          </button>
+        </form>
       </div>
   
-      <div>
-        <label class="block mb-2">Destination:</label>
-        <input 
-          type="text" 
-          [(ngModel)]="destinationLocation" 
-          class="w-full p-2 border rounded"
-          placeholder="Enter destination"
-          [disabled]="isLoading">
+      <!-- Map and Route Information Section -->
+      <div class="lg:w-2/3">
+        <app-route-display 
+          [routes]="routeData?.routes || []"
+          [startLocation]="routeForm.value.startLocation"
+          [destinationLocation]="routeForm.value.destinationLocation"
+          [isLoading]="isLoading">
+        </app-route-display>
       </div>
-  
-      <div>
-        <label class="block mb-2">Time Filter:</label>
-        <select 
-          [(ngModel)]="timeFilter" 
-          class="w-full p-2 border rounded"
-          [disabled]="isLoading">
-          <option value="all_time">All Time</option>
-          <option value="past_7_days">Past 7 Days</option>
-          <option value="past_1_month">Past Month</option>
-          <option value="past_6_months">Past 6 Months</option>
-          <option value="past_1_year">Past Year</option>
-        </select>
-      </div>
-  
-      <button 
-        (click)="getRoute()" 
-        class="w-full bg-blue-500 text-white p-3 rounded hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed"
-        [disabled]="isLoading">
-        Get Route
-      </button>
     </div>
-  
-    @if (error) {
-      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-        {{error}}
-      </div>
-    }
-  
-    @if (isLoading) {
-      <div class="flex items-center justify-center p-8">
-        <div class="text-center">
-          <div class="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-500 mb-4"></div>
-          <p class="text-gray-600">Calculating routes and analyzing crime data...</p>
-        </div>
-      </div>
-    }
-  
-    <!-- Always show map container, with or without routes -->
-    <app-route-display 
-      [routes]="routeData?.routes || []"
-      [startLocation]="startLocation"
-      [destinationLocation]="destinationLocation">
-    </app-route-display>
   </div>

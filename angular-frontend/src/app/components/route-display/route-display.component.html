@@ -1,18 +1,13 @@
-<div class="mt-6">
-    <!-- Map View -->
-    <div class="border rounded mb-6">
-      <app-map-view 
-        [routes]="routes"
-        [startLocation]="startLocation"
-        [destinationLocation]="destinationLocation">
-      </app-map-view>
-    </div>
+<div class="space-y-6">
+    <app-map-view 
+      [routes]="routes"
+      [isLoading]="isLoading">
+    </app-map-view>
   
     @if (routes.length > 0) {
-      <div>
-        <h3 class="text-xl font-bold mb-4">Route Information</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         @for (route of routes; track $index) {
-          <div class="border rounded p-4 mb-4" 
+          <div class="border rounded p-4" 
                [style.border-color]="getRouteColor($index)"
                [id]="'route-info-' + $index">
             <h4 class="font-bold mb-2" [style.color]="getRouteColor($index)">Route {{$index + 1}}</h4>

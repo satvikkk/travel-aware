@@ -13,6 +13,7 @@ export class RouteDisplayComponent {
   @Input() routes: any[] = [];
   @Input() startLocation: string = '';
   @Input() destinationLocation: string = '';
+  @Input() isLoading = false;
 
   getRouteColor(index: number): string {
     const colors = ['#2196F3', '#9C27B0', '#FF9800', '#4CAF50', '#F44336'];
