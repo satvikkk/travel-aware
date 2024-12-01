@@ -5,12 +5,21 @@ import type mapboxgl from 'mapbox-gl';
 @Component({
   selector: 'app-map-view',
   template: `
-    <div id="map" style="width: 100%; height: 500px;"></div>
+    <div id="map" class="map-container" style="width: 100%; height: 500px;"></div>
     <div id="route-tooltip" class="route-tooltip"></div>
   `,
   styles: [`
     :host {
       position: relative;
+      display: block;
+      width: 100%;
+      min-height: 500px;
+    }
+    .map-container {
+      position: relative;
+      width: 100%;
+      height: 500px;
+      border-radius: 4px;
     }
     .route-tooltip {
       display: none;
@@ -50,6 +59,20 @@ export class MapViewComponent implements OnInit, OnChanges {
     }
   }
 
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['routes'] && this.map) {
+      if (this.routes.length > 0) {
+        this.drawRoutes();
+      } else {
+        this.map.flyTo({
+          center: this.LA_CENTER,
+          zoom: this.DEFAULT_ZOOM,
+          essential: true
+        });
+      }
+    }
+  }
+
   private async initializeMapbox() {
     try {
       const mapboxgl = await import('mapbox-gl');
@@ -62,20 +85,6 @@ export class MapViewComponent implements OnInit, OnChanges {
       }
     } catch (error) {
       console.error('Error loading Mapbox GL:', error);
-    }
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['routes'] && this.map) {
-      if (this.routes.length > 0) {
-        this.drawRoutes();
-      } else {
-        this.map.flyTo({
-          center: this.LA_CENTER,
-          zoom: this.DEFAULT_ZOOM,
-          essential: true
-        });
-      }
     }
   }
 
@@ -159,11 +168,6 @@ export class MapViewComponent implements OnInit, OnChanges {
         if (this.map && this.map.getCanvas()) {
           this.map.getCanvas().style.cursor = 'pointer';
         }
-
-        const routeInfo = document.getElementById(`route-info-${i}`);
-        if (routeInfo) {
-          routeInfo.style.backgroundColor = '#f0f0f0';
-        }
       });
 
       this.map.on('mouseleave', id, () => {
@@ -173,11 +177,6 @@ export class MapViewComponent implements OnInit, OnChanges {
         
         if (this.map && this.map.getCanvas()) {
           this.map.getCanvas().style.cursor = '';
-        }
-
-        const routeInfo = document.getElementById(`route-info-${i}`);
-        if (routeInfo) {
-          routeInfo.style.backgroundColor = '';
         }
       });
     });
