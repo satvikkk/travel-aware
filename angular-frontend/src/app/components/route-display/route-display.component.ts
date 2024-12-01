@@ -2,7 +2,7 @@ import { Component, Input, ViewChild, OnInit, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatSortModule, MatSort } from '@angular/material/sort';
-import { MapViewComponent } from '../map-view/map-view.component';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TopCrimesComponent } from '../top-crimes/top-crimes.component';
 
 interface RouteData {
@@ -16,7 +16,13 @@ interface RouteData {
   selector: 'app-route-display',
   templateUrl: './route-display.component.html',
   styleUrls: ['./route-display.component.scss'],
-  imports: [CommonModule, MatTableModule, MatSortModule, MapViewComponent, TopCrimesComponent],
+  imports: [
+    CommonModule, 
+    MatTableModule, 
+    MatSortModule, 
+    MatProgressSpinnerModule,
+    TopCrimesComponent
+  ],
   standalone: true
 })
 export class RouteDisplayComponent implements OnInit, OnChanges {
@@ -41,7 +47,6 @@ export class RouteDisplayComponent implements OnInit, OnChanges {
 
   ngAfterViewInit() {
     this.dataSource.sort = this.sort;
-    // Custom sort functions for numeric columns
     this.dataSource.sortingDataAccessor = (item: RouteData, property: string) => {
       switch(property) {
         case 'crimeScore': return item.crimeScore;
@@ -75,10 +80,5 @@ export class RouteDisplayComponent implements OnInit, OnChanges {
   getRouteColor(index: number): string {
     const colors = ['#2196F3', '#9C27B0', '#FF9800', '#4CAF50', '#F44336'];
     return colors[index % colors.length];
-  }
-
-  getRouteBackgroundColor(index: number): string {
-    const color = this.getRouteColor(index);
-    return `${color}15`;
   }
 }

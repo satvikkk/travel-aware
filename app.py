@@ -44,6 +44,7 @@ def get_route():
         start_location = data.get('start_location')
         destination_location = data.get('destination_location')
         time_filter = data.get('time_filter', 'all_time')
+        user_demographics = data.get('user_demographics', {})
 
         start_coords = geocode_location(start_location)
         end_coords = geocode_location(destination_location)
@@ -63,6 +64,14 @@ def get_route():
         route_distances = [route['distance'] for route in route_info]
         route_durations = [route['duration'] for route in route_info]
         crime_scores = calculate_crime_scores(routes, filtered_crime_data, route_distances)
+        
+        # Get top crimes using the user-provided demographics
+        top_crimes = get_top_crimes(
+            filtered_crime_data,
+            age=user_demographics.get('age'),
+            gender=user_demographics.get('gender'),
+            travel_time=user_demographics.get('travelTime')
+        )
 
         response_data = {
             "routes": [{
@@ -73,7 +82,8 @@ def get_route():
             } for route, score, distance, duration in zip(routes, crime_scores, route_distances, route_durations)],
             "crime_scores": crime_scores,
             "route_distances": route_distances,
-            "route_durations": route_durations
+            "route_durations": route_durations,
+            "top_crimes": top_crimes
         }
 
         return jsonify(response_data), 200

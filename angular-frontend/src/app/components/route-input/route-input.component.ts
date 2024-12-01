@@ -8,7 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ApiService, UserDemographics } from '../../services/api.service';
 import { RouteDisplayComponent } from '../route-display/route-display.component';
-import { TopCrimesComponent } from '../top-crimes/top-crimes.component';
+import { MapViewComponent } from '../map-view/map-view.component';
 
 @Component({
   selector: 'app-route-input',
@@ -24,7 +24,7 @@ import { TopCrimesComponent } from '../top-crimes/top-crimes.component';
     MatButtonModule,
     MatProgressSpinnerModule,
     RouteDisplayComponent,
-    TopCrimesComponent
+    MapViewComponent
   ]
 })
 export class RouteInputComponent {

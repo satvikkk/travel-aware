@@ -1,28 +1,28 @@
 <div class="container mx-auto p-4">
     <h2 class="text-2xl font-bold mb-4">TravelAware</h2>
-    <p class="text-gray-600 mb-6">Your commute safety assistant</p>
-    
+    <p>Your commute safety assistant</p>
+  
     <div class="flex flex-col lg:flex-row gap-6">
       <!-- Form Section -->
       <div class="lg:w-1/3">
-        <form [formGroup]="routeForm" (ngSubmit)="getRoute()" class="space-y-4">
-          <mat-form-field appearance="outline" class="w-full">
+        <form [formGroup]="routeForm" (ngSubmit)="getRoute()">
+          <mat-form-field class="w-full">
             <mat-label>Start Location</mat-label>
-            <input matInput formControlName="startLocation" placeholder="Enter start location">
+            <input matInput formControlName="startLocation" required>
             @if (routeForm.get('startLocation')?.touched) {
               <mat-error>{{getErrorMessage('startLocation')}}</mat-error>
             }
           </mat-form-field>
   
-          <mat-form-field appearance="outline" class="w-full">
+          <mat-form-field class="w-full">
             <mat-label>Destination</mat-label>
-            <input matInput formControlName="destinationLocation" placeholder="Enter destination">
+            <input matInput formControlName="destinationLocation" required>
             @if (routeForm.get('destinationLocation')?.touched) {
               <mat-error>{{getErrorMessage('destinationLocation')}}</mat-error>
             }
           </mat-form-field>
   
-          <mat-form-field appearance="outline" class="w-full">
+          <mat-form-field class="w-full">
             <mat-label>Time Filter</mat-label>
             <mat-select formControlName="timeFilter">
               <mat-option value="all_time">All Time</mat-option>
@@ -33,21 +33,20 @@
             </mat-select>
           </mat-form-field>
   
-          <!-- Demographic Information -->
           <div class="border-t pt-4 mt-4">
             <h3 class="text-lg font-semibold mb-4">Personal Information</h3>
-            
-            <mat-form-field appearance="outline" class="w-full">
+  
+            <mat-form-field class="w-full">
               <mat-label>Age</mat-label>
-              <input matInput type="number" formControlName="age" min="0" max="100">
+              <input matInput type="number" formControlName="age" required>
               @if (routeForm.get('age')?.touched) {
                 <mat-error>{{getErrorMessage('age')}}</mat-error>
               }
             </mat-form-field>
   
-            <mat-form-field appearance="outline" class="w-full">
+            <mat-form-field class="w-full">
               <mat-label>Gender</mat-label>
-              <mat-select formControlName="gender">
+              <mat-select formControlName="gender" required>
                 <mat-option value="M">Male</mat-option>
                 <mat-option value="F">Female</mat-option>
               </mat-select>
@@ -56,9 +55,9 @@
               }
             </mat-form-field>
   
-            <mat-form-field appearance="outline" class="w-full">
+            <mat-form-field class="w-full">
               <mat-label>Travel Time</mat-label>
-              <mat-select formControlName="travelTime">
+              <mat-select formControlName="travelTime" required>
                 @for (time of timeOptions; track time.value) {
                   <mat-option [value]="time.value">{{time.label}}</mat-option>
                 }
@@ -66,40 +65,42 @@
             </mat-form-field>
           </div>
   
-          <button mat-raised-button 
-                  color="primary" 
-                  class="w-full" 
-                  type="submit"
-                  [disabled]="isLoading">
+          <button mat-raised-button color="primary" type="submit" [disabled]="isLoading" class="w-full">
             @if (isLoading) {
-              <div class="flex items-center justify-center">
-                <mat-spinner diameter="20" class="mr-2"></mat-spinner>
-                Calculating Routes...
-              </div>
+              <mat-spinner diameter="20" class="inline-block mr-2"></mat-spinner>
+              Calculating Routes...
             } @else {
               Get Route
             }
           </button>
   
           @if (error) {
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mt-4">
               {{error}}
             </div>
           }
-  
-          <!-- Top Crimes Card Component -->
-          <app-top-crimes [crimes]="topCrimes"></app-top-crimes>
         </form>
       </div>
   
-      <!-- Map and Route Information Section -->
+      <!-- Map and Results Section -->
       <div class="lg:w-2/3">
-        <app-route-display 
+        <!-- Map is always visible -->
+        <app-map-view
           [routes]="routeData?.routes || []"
           [startLocation]="routeForm.value.startLocation"
-          [destinationLocation]="routeForm.value.destinationLocation"
-          [isLoading]="isLoading">
-        </app-route-display>
+          [destinationLocation]="routeForm.value.destinationLocation">
+        </app-map-view>
+  
+        <!-- Route information and crime analysis -->
+        @if (routeData) {
+          <app-route-display
+            [routes]="routeData.routes"
+            [startLocation]="routeForm.value.startLocation"
+            [destinationLocation]="routeForm.value.destinationLocation"
+            [topCrimes]="routeData.top_crimes || []"
+            [isLoading]="isLoading">
+          </app-route-display>
+        }
       </div>
     </div>
   </div>
