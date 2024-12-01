@@ -143,12 +143,18 @@ def get_top_crimes(data, age, gender, travel_time):
 
 
 def geocode_location(location):
+    # Los Angeles Coordinates (Latitude, Longitude)
+    la_center_lat, la_center_lon = 34.0522, -118.2437
     geocode_url = f"https://api.mapbox.com/geocoding/v5/mapbox.places/{location}.json"
-    params = {"access_token": MAPBOX_ACCESS_TOKEN}
+    params = {
+        "access_token": MAPBOX_ACCESS_TOKEN,
+        "proximity": f"{la_center_lon},{la_center_lat}"  # Bias towards central LA
+    }
     response = requests.get(geocode_url, params=params).json()
     if response['features']:
         return response['features'][0]['geometry']['coordinates']
     return None
+
 
 def get_directions(start_coords, end_coords, max_routes=5, detail_level="full"):
     directions_url = f"https://api.mapbox.com/directions/v5/mapbox/driving/{start_coords[0]},{start_coords[1]};{end_coords[0]},{end_coords[1]}"
