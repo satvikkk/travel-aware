@@ -143,12 +143,18 @@ def get_top_crimes(data, age, gender, travel_time):
 
 
 def geocode_location(location):
+    # Los Angeles Coordinates (Latitude, Longitude)
+    la_center_lat, la_center_lon = 34.0522, -118.2437
     geocode_url = f"https://api.mapbox.com/geocoding/v5/mapbox.places/{location}.json"
-    params = {"access_token": MAPBOX_ACCESS_TOKEN}
+    params = {
+        "access_token": MAPBOX_ACCESS_TOKEN,
+        "proximity": f"{la_center_lon},{la_center_lat}"  # Bias towards central LA
+    }
     response = requests.get(geocode_url, params=params).json()
     if response['features']:
         return response['features'][0]['geometry']['coordinates']
     return None
+
 
 def get_directions(start_coords, end_coords, max_routes=5, detail_level="full"):
     directions_url = f"https://api.mapbox.com/directions/v5/mapbox/driving/{start_coords[0]},{start_coords[1]};{end_coords[0]},{end_coords[1]}"
@@ -193,10 +199,10 @@ def calculate_distance(coord_pair):
     return geodesic(crime_coords, (coord[1], coord[0])).meters
 
 def calculate_route_distance(route):
-    """Calculate the total distance of the route in meters."""
+    """Calculate the total distance of the route in miles."""
     distance = 0
     for i in range(1, len(route)):
-        distance += geodesic((route[i-1][1], route[i-1][0]), (route[i][1], route[i][0])).meters
+        distance += geodesic((route[i-1][1], route[i-1][0]), (route[i][1], route[i][0])).miles
     return distance
 
 def get_crime_score_bulk(route_coords, crime_data, buffer_miles=0.1):

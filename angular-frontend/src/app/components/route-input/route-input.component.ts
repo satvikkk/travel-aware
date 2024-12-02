@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, AbstractControl, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -32,11 +32,10 @@ export class RouteInputComponent {
   isLoading = false;
   routeData: any = null;
   error: string | null = null;
-  topCrimes: [string, number][] = [];
 
   timeOptions = Array.from({ length: 24 }, (_, i) => ({
     value: i * 100,
-    label: `${String(i).padStart(2, '0')}:00`
+    label: this.formatTimeToAMPM(i)
   }));
 
   constructor(
@@ -44,8 +43,16 @@ export class RouteInputComponent {
     private apiService: ApiService
   ) {
     this.routeForm = this.fb.group({
-      startLocation: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9\s,.-]+$/)]],
-      destinationLocation: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9\s,.-]+$/)]],
+      startLocation: ['', [
+        Validators.required,
+        Validators.pattern(/^[a-zA-Z0-9\s,.-]+$/),
+        this.locationValidator()
+      ]],
+      destinationLocation: ['', [
+        Validators.required,
+        Validators.pattern(/^[a-zA-Z0-9\s,.-]+$/),
+        this.locationValidator()
+      ]],
       timeFilter: ['all_time', Validators.required],
       age: ['', [Validators.required, Validators.min(0), Validators.max(100)]],
       gender: ['', Validators.required],
@@ -53,22 +60,51 @@ export class RouteInputComponent {
     });
   }
 
+  private formatTimeToAMPM(hour: number): string {
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 || 12;
+    return `${hour12}:00 ${ampm}`;
+  }
+
+  private locationValidator() {
+    return (control: AbstractControl): { [key: string]: any } | null => {
+      const value = control.value;
+      if (!value) return null;
+  
+      // Simple pattern to allow letters, numbers, common punctuation and spaces
+      const generalPattern = /^[a-zA-Z0-9\s,.-]+$/;
+  
+      if (!generalPattern.test(value)) {
+        return { locationFormat: true }; // custom error to indicate invalid format
+      }
+  
+      return null; // null means valid
+    };
+  }
+  
+
   getErrorMessage(controlName: string): string {
     const control = this.routeForm.get(controlName);
-    if (control?.hasError('required')) {
+    if (!control) return '';
+  
+    if (control.hasError('required')) {
       return 'This field is required';
     }
-    if (control?.hasError('pattern')) {
+    if (control.hasError('pattern')) {
       return 'Please enter a valid location (letters, numbers, spaces, and basic punctuation only)';
     }
-    if (control?.hasError('min')) {
+    if (control.hasError('locationFormat')) {
+      return 'Please enter a valid format';
+    }
+    if (control.hasError('min')) {
       return 'Age must be at least 0';
     }
-    if (control?.hasError('max')) {
+    if (control.hasError('max')) {
       return 'Age must be less than 100';
     }
     return '';
   }
+  
 
   getRoute(): void {
     if (this.routeForm.invalid) {
@@ -97,7 +133,6 @@ export class RouteInputComponent {
       next: (response) => {
         console.log('API Response:', response);
         this.routeData = response;
-        this.topCrimes = response.top_crimes || [];
         this.isLoading = false;
       },
       error: (error) => {
