@@ -52,4 +52,56 @@
       background-color: #0056b3;
     }
   }
+
+  
+  .slider-container {
+    width: 95%;
+    padding: 16px;
+    margin: -16px ;
+    background: transparent;
+    box-shadow:none ;  // Compensate for the padding to align with container
+    
+    ::ng-deep .custom-slider {
+      width: calc(100% - 16px);  // Account for padding
+      margin: 0 8px;
+      min-width: 200px;
+      
+      .mdc-slider {
+        height: 48px;
+      }
+
+      .mdc-slider__track--active {
+        height: 8px;
+        background-color: #2196F3;
+      }
+
+      .mdc-slider__track--inactive {
+        height: 8px;
+        background-color: #E0E0E0;
+      }
+
+      
+    }
+  }
+
+  .slider-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    padding: 0 8px;
+
+    span {
+      font-size: 14px;
+      font-weight: 500;
+      color: #2196F3;
+    }
+  }
+  [formGroupName="routePreference"],
+  div:has(> .slider-container) {
+    border: none;
+    box-shadow: none;
+    background: transparent;
+  }
+
 }
+

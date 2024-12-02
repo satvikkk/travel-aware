@@ -15,7 +15,7 @@ interface CrimeData {
     <div class="mat-elevation-z2 mt-8">
       <table mat-table [dataSource]="dataSource" class="w-full">
         <ng-container matColumnDef="type">
-          <th mat-header-cell *matHeaderCellDef class="bg-gray-50 font-bold text-gray-700"> Crime Type </th>
+          <th mat-header-cell *matHeaderCellDef class="bg-gray-50"> Crime Type </th>
           <td mat-cell *matCellDef="let crime"> {{crime.type}} </td>
         </ng-container>
 

@@ -6,6 +6,7 @@ export interface UserDemographics {
   age: number;
   gender: 'M' | 'F';
   travelTime: number;
+  preference: number; // Add preference field
 }
 
 export interface RouteRequest {

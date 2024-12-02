@@ -12,7 +12,7 @@
                 <mat-form-field class="w-full">
                     <mat-label>Start Location</mat-label>
                     <input matInput formControlName="startLocation" required 
-                           placeholder="e.g., 123 Wilshire Blvd or Dodger Stadium">
+                           placeholder="e.g., 8523 Melrose Avenue or Dodger Stadium">
                     <mat-hint>Enter an LA address, landmark, or neighborhood</mat-hint>
                     @if (routeForm.get('startLocation')?.touched && routeForm.get('startLocation')?.invalid) {
                       <mat-error>{{getErrorMessage('startLocation')}}</mat-error>
@@ -82,14 +82,43 @@
             </mat-form-field>
           </div>
   
-          <button mat-raised-button color="primary" type="submit" [disabled]="isLoading" class="w-full">
-            @if (isLoading) {
-              <mat-spinner diameter="20" class="inline-block mr-2"></mat-spinner>
-              Calculating Routes...
-            } @else {
-              Get Route
-            }
-          </button>
+
+          <div class="route-input">
+            <div class="w-full mb-6 px-4">
+              <h3 class="text-lg font-semibold mb-3">Route Preference</h3>
+              
+              <div class="slider-container">
+                <mat-slider class="custom-slider" [discrete]="true">
+                  <input matSliderThumb
+                         [formControlName]="'preference'"
+                         [min]="0"
+                         [max]="1"
+                         [step]="0.1">
+                </mat-slider>
+                
+                <div class="slider-labels">
+                  <span class="label-fastest">Fastest</span>
+                  <span class="label-safest">Safest</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex justify-center items-center h-12">
+            <button mat-raised-button color="primary" 
+                    [disabled]="isLoading" 
+                    (click)="getRoute()" 
+                    class="w-full max-w-xs relative">
+              @if (isLoading) {
+                <div class="absolute inset-0 flex items-center justify-center bg-primary">
+                  <span class="mr-3">Calculating Routes...</span>
+                  <mat-spinner diameter="24"></mat-spinner>
+                </div>
+              } @else {
+                Get Route
+              }
+            </button>
+          </div>
   
           @if (error) {
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mt-4">
@@ -100,9 +129,9 @@
       </div>
   
       <!-- Map and Results Section -->
-      <div class="lg:w-2/3">
-        <app-map-view
-          [routes]="routeData?.routes || []"
+      <div class="flex justify-center w-full">
+        <app-map-view 
+          [routes]="routeData?.routes"
           [startLocation]="routeForm.value.startLocation"
           [destinationLocation]="routeForm.value.destinationLocation">
         </app-map-view>

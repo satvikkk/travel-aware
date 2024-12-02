@@ -1,4 +1,4 @@
-import { Component, Input, ViewChild, OnInit, OnChanges } from '@angular/core';
+import { Component, Input, ViewChild, OnInit, OnChanges, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatSortModule, MatSort } from '@angular/material/sort';
@@ -36,6 +36,26 @@ export class RouteDisplayComponent implements OnInit, OnChanges {
 
   displayedColumns: string[] = ['id', 'crimeScore', 'distance', 'duration'];
   dataSource: MatTableDataSource<RouteData>;
+  @Output() routeHover = new EventEmitter<number | null>();
+  hoveredRouteIndex: number | null = null;
+
+  getRowClass(index: number): string {
+    return this.hoveredRouteIndex === index ? 'bg-blue-50' : '';
+  }
+  onRouteHover(index: number | null) {
+    this.hoveredRoute = index;      // Emit event to map component
+    const event = new CustomEvent('routeHover', {         detail: { routeIndex: index } 
+    });
+    window.dispatchEvent(event);    }
+  onMouseEnter(index: number) {
+    this.hoveredRouteIndex = index;
+    this.routeHover.emit(index);
+  }
+
+  onMouseLeave() {
+    this.hoveredRouteIndex = null;
+    this.routeHover.emit(null);
+  }
 
   constructor() {
     this.dataSource = new MatTableDataSource<RouteData>();
@@ -81,4 +101,10 @@ export class RouteDisplayComponent implements OnInit, OnChanges {
     const colors = ['#2196F3', '#9C27B0', '#FF9800', '#4CAF50', '#F44336'];
     return colors[index % colors.length];
   }
+ 
+  
+  hoveredRoute: number | null = null;
+
+    
+  
 }

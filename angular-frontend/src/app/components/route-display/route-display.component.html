@@ -2,7 +2,7 @@
     @if (routes.length > 0) {
       <!-- Route Information Table -->
       <div class="mt-4">
-        <h2 class="text-3xl font-bold text-center mb-6">Route Information</h2>
+        <h1 class="text-3xl font-bold text-center mb-6">Route Information</h1>
   
         <div class="border rounded-lg overflow-hidden mb-8">
           <table mat-table [dataSource]="dataSource" matSort class="w-full">
@@ -31,9 +31,9 @@
   
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"
-                [id]="'route-info-' + (row.id - 1)"
-                class="hover:bg-gray-50 transition-colors duration-150">
-            </tr>
+                [class]="getRowClass(row.id)"
+                (mouseenter)="onRouteHover(row.id - 1)"
+                (mouseleave)="onRouteHover(null)"></tr>
           </table>
         </div>
       </div>
@@ -41,7 +41,7 @@
       <!-- Top Crimes Component -->
       @if (topCrimes.length > 0) {
         <div class="mt-8">
-          <h2 class="text-3xl font-bold text-center mb-6">Crime Analysis</h2>
+          <h2 class="text-3xl font-bold text-center mb-6">Top 3 Crimes Based on User Profile</h2>
           <app-top-crimes [crimes]="topCrimes"></app-top-crimes>
         </div>
       }

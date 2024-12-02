@@ -5,7 +5,7 @@ import type mapboxgl from 'mapbox-gl';
 @Component({
   selector: 'app-map-view',
   template: `
-    <div id="map" class="map-container" style="width: 100%; height: 500px;"></div>
+    <div id="map" class="map-container"></div>
     <div id="route-tooltip" class="route-tooltip"></div>
   `,
   styles: [`
@@ -23,7 +23,7 @@ import type mapboxgl from 'mapbox-gl';
     }
     .route-tooltip {
       display: none;
-      position: fixed;
+      position: absolute;
       background: white;
       padding: 4px 8px;
       border-radius: 4px;
@@ -31,6 +31,7 @@ import type mapboxgl from 'mapbox-gl';
       pointer-events: none;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       z-index: 1000;
+      transform: translateY(-20px);
     }
   `],
   standalone: true,
@@ -56,8 +57,26 @@ export class MapViewComponent implements OnInit, OnChanges {
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       this.initializeMapbox();
+      this.setupRouteHoverListener();
     }
   }
+
+  private setupRouteHoverListener() {
+    window.addEventListener('routeHover', ((event: CustomEvent) => {
+      const routeIndex = event.detail.routeIndex;
+      this.routes.forEach((_, i) => {
+        const layer = this.map?.getLayer(`route-${i}`);
+        if (layer) {
+          this.map?.setPaintProperty(
+            `route-${i}`,
+            'line-opacity',
+            routeIndex === null || routeIndex === i ? 0.8 : 0.3
+          );
+        }
+      });
+    }) as EventListener);
+  }
+
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['routes'] && this.map) {

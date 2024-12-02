@@ -5,6 +5,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
+import { MatSliderModule } from '@angular/material/slider';
+import { FormsModule } from '@angular/forms';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ApiService, UserDemographics } from '../../services/api.service';
 import { RouteDisplayComponent } from '../route-display/route-display.component';
@@ -24,7 +26,9 @@ import { MapViewComponent } from '../map-view/map-view.component';
     MatButtonModule,
     MatProgressSpinnerModule,
     RouteDisplayComponent,
-    MapViewComponent
+    MapViewComponent,
+    MatSliderModule,
+    FormsModule
   ]
 })
 export class RouteInputComponent {
@@ -56,7 +60,8 @@ export class RouteInputComponent {
       timeFilter: ['all_time', Validators.required],
       age: ['', [Validators.required, Validators.min(0), Validators.max(100)]],
       gender: ['', Validators.required],
-      travelTime: ['', Validators.required]
+      travelTime: ['', Validators.required],
+      preference: [0.5]
     });
   }
 
@@ -64,6 +69,12 @@ export class RouteInputComponent {
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const hour12 = hour % 12 || 12;
     return `${hour12}:00 ${ampm}`;
+  }
+  
+  formatLabel(value: number): string {
+    if (value === 0) return 'Fastest';
+    if (value === 1) return 'Safest';
+    return `${Math.round(value * 100)}%`;
   }
 
   private locationValidator() {
@@ -119,7 +130,8 @@ export class RouteInputComponent {
     const demographics: UserDemographics = {
       age: this.routeForm.value.age,
       gender: this.routeForm.value.gender,
-      travelTime: this.routeForm.value.travelTime
+      travelTime: this.routeForm.value.travelTime,
+      preference: this.routeForm.value.preference 
     };
 
     const requestData = {
