@@ -23,6 +23,7 @@ RISK_LEVELS = {
 
 # Load crime data
 crime_data = pd.read_csv('Modified_Crime_Data_LA_with_categories.csv')
+crime_data_og = crime_data
 crime_data[['LAT', 'LON']] = crime_data[['LAT', 'LON']].astype(np.float32)
 crime_data['DATE OCC'] = pd.to_datetime(crime_data['DATE OCC'], format='%m/%d/%Y %I:%M:%S %p')
 
@@ -62,14 +63,15 @@ def get_route():
         filtered_crime_data = filter_crime_data_by_time(time_filter)
         route_distances = [route['distance'] for route in route_info]  # Now in kilometers
         route_durations = [route['duration'] for route in route_info]  # In seconds
-        crime_scores = calculate_crime_scores(routes, filtered_crime_data, route_distances)
         
         top_crimes = get_top_crimes(
-            filtered_crime_data,
+            crime_data_og,
             age=user_demographics.get('age'),
             gender=user_demographics.get('gender'),
             travel_time=user_demographics.get('travelTime')
         )
+
+        crime_scores = calculate_crime_scores(routes, filtered_crime_data, route_distances, top_crimes)
 
         response_data = {
             "routes": [{
@@ -130,7 +132,13 @@ def get_top_crimes(data, age, gender, travel_time):
     freq_dict = Counter(top_coordinates)
     top_three = freq_dict.most_common(3)
 
-    return top_three
+    top_three_list = []
+    for a in top_three:
+        top_three_list.append(a[0])
+
+    print("top_three_crimes_profile",top_three_list)
+
+    return top_three_list
 
 def geocode_location(location):
     la_center_lat, la_center_lon = 34.0522, -118.2437
@@ -193,13 +201,18 @@ def calculate_route_distance(route):
         ).kilometers
     return distance
 
-def get_crime_score_bulk(route_coords, crime_data, buffer_km=0.16):
+def get_crime_score_bulk(route_coords, crime_data, top_crimes, buffer_km=0.16):
     buffer_meters = buffer_km * 1000  # Convert km to meters for consistency
     route_coords = torch.tensor(route_coords, dtype=torch.float32, device=device)
     crime_coords_list = torch.tensor(crime_data[['LAT', 'LON']].to_numpy(), dtype=torch.float32, device=device)
     
     total_risk = torch.zeros(1, device=device)
+
+    tcr_1 = top_crimes
     
+    #print(tcr_1) #DEBUG
+
+    # Loop over each crime coordinate and check if it's within the buffer from any route point
     for i, crime_coords in tqdm(enumerate(crime_coords_list), total=len(crime_coords_list), desc="Filtering Nearby Points", unit="crime"):
         distances = torch.norm(route_coords - crime_coords, dim=1)
         
@@ -208,18 +221,30 @@ def get_crime_score_bulk(route_coords, crime_data, buffer_km=0.16):
                 (crime_data['LAT'] == crime_coords[0].item()) & (crime_data['LON'] == crime_coords[1].item()),
                 'Category'
             ].values[0]
-            total_risk += RISK_LEVELS.get(crime_category, 0)
+
+            #print("DEBUG",crime_category)
+            
+            if crime_category in tcr_1:
+                total_risk += RISK_LEVELS.get(crime_category, 0)*1.2
+                #print("TRIGGERED")
+            else:
+                total_risk += RISK_LEVELS.get(crime_category, 0)
     
     return total_risk.item()
 
-def calculate_crime_scores(routes, filtered_crime_data, route_distances):
+def calculate_crime_scores(routes, filtered_crime_data, route_distances, top_crimes):
     crime_scores = []
     
-    for i, (route, distance) in tqdm(enumerate(zip(routes, route_distances)), 
-                                   desc="Calculating crime scores", 
-                                   unit="route"):
-        crime_score = get_crime_score_bulk(route, filtered_crime_data)
-        normalized_crime_score = crime_score / (distance + 1e-6)  # distance is in kilometers
+    # Use tqdm to show a progress bar in the CLI during the computation
+    for i, (route, distance) in tqdm(enumerate(zip(routes, route_distances)), desc="Calculating crime scores", unit="route"):
+        # Calculate the total crime score for the current route
+        crime_score = get_crime_score_bulk(route, filtered_crime_data, top_crimes)
+        
+        # Normalize the crime score by dividing it by the route's distance
+        # Add a small epsilon to prevent division by zero errors in case of very short routes
+        normalized_crime_score = crime_score / (distance + 1e-6)
+        
+        # Round the normalized crime score to 4 decimal places
         normalized_crime_score_rounded = round(normalized_crime_score, 4)
         crime_scores.append(normalized_crime_score_rounded)
     
