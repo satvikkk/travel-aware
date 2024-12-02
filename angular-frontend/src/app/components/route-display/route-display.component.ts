@@ -68,8 +68,8 @@ export class RouteDisplayComponent implements OnInit, OnChanges {
     const tableData = this.routes.map((route, index) => ({
       id: index + 1,
       crimeScore: route.crime_score,
-      distance: route.distance / 1000,
-      duration: route.duration / 60
+      distance: Number(route.distance),        // Already in km
+      duration: Math.round(route.duration/60)  // Convert seconds to minutes and round to nearest minute
     }));
     this.dataSource = new MatTableDataSource(tableData);
     if (this.sort) {
