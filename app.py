@@ -199,10 +199,10 @@ def calculate_distance(coord_pair):
     return geodesic(crime_coords, (coord[1], coord[0])).meters
 
 def calculate_route_distance(route):
-    """Calculate the total distance of the route in meters."""
+    """Calculate the total distance of the route in miles."""
     distance = 0
     for i in range(1, len(route)):
-        distance += geodesic((route[i-1][1], route[i-1][0]), (route[i][1], route[i][0])).meters
+        distance += geodesic((route[i-1][1], route[i-1][0]), (route[i][1], route[i][0])).miles
     return distance
 
 def get_crime_score_bulk(route_coords, crime_data, buffer_miles=0.1):
