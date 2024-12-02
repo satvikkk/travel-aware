@@ -2,11 +2,11 @@ import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatCardModule } from '@angular/material/card';
-import { MatSortModule, MatSort } from '@angular/material/sort';
+import { MatSortModule } from '@angular/material/sort';
 
 interface CrimeData {
   type: string;
-  incidents: number;
+  riskLevel: number;
 }
 
 @Component({
@@ -14,18 +14,16 @@ interface CrimeData {
   template: `
     <div class="mat-elevation-z2 mt-8">
       <table mat-table [dataSource]="dataSource" class="w-full">
-        <!-- Crime Type Column -->
         <ng-container matColumnDef="type">
           <th mat-header-cell *matHeaderCellDef class="bg-gray-50 font-bold text-gray-700"> Crime Type </th>
           <td mat-cell *matCellDef="let crime"> {{crime.type}} </td>
         </ng-container>
 
-        <!-- Incidents Column -->
-        <ng-container matColumnDef="incidents">
-          <th mat-header-cell *matHeaderCellDef class="bg-gray-50 font-bold text-gray-700 text-right"> Incidents </th>
+        <ng-container matColumnDef="riskLevel">
+          <th mat-header-cell *matHeaderCellDef class="bg-gray-50 font-bold text-gray-700 text-right"> Risk Level </th>
           <td mat-cell *matCellDef="let crime" class="text-right"> 
-            <span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-sm">
-              {{crime.incidents}} incidents
+            <span class="px-2 py-1" [ngClass]="getRiskLevelClass(crime.riskLevel)">
+              {{crime.riskLevel}}
             </span>
           </td>
         </ng-container>
@@ -47,23 +45,34 @@ interface CrimeData {
   imports: [CommonModule, MatTableModule, MatCardModule, MatSortModule]
 })
 export class TopCrimesComponent {
-  @Input() set crimes(value: [string, number][]) {
+  @Input() set crimes(value: string[]) {
     this._crimes = value;
     this.updateDataSource();
   }
-  get crimes(): [string, number][] {
-    return this._crimes;
-  }
 
-  private _crimes: [string, number][] = [];
-  displayedColumns: string[] = ['type', 'incidents'];
+  private _crimes: string[] = [];
+  displayedColumns: string[] = ['type', 'riskLevel'];
   dataSource = new MatTableDataSource<CrimeData>();
 
+  private riskLevels: {[key: string]: number} = {
+    'Theft': 6, 'Burglary': 7, 'Sexual Offenses': 9, 'Assault': 9, 'Homicide': 10,
+    'Robbery': 8, 'Vandalism': 3, 'Trespassing': 2, 'Crimes Against Children': 8,
+    'Criminal Threats': 6, 'Weapon Offenses': 8, 'Order Violations': 4,
+    'Lewd Letters and Calls': 3, 'Fraud': 2, 'Kidnapping': 9, 'Traffic Offenses': 4,
+    'Public Disorder': 4
+  };
+
   private updateDataSource() {
-    const tableData: CrimeData[] = this._crimes.map(([type, incidents]) => ({
+    const tableData: CrimeData[] = this._crimes.map(type => ({
       type,
-      incidents
+      riskLevel: this.riskLevels[type] || 0
     }));
     this.dataSource.data = tableData;
+  }
+
+  getRiskLevelClass(level: number): string {
+    if (level >= 8) return 'bg-red-100 text-red-800 rounded-full text-sm';
+    if (level >= 5) return 'bg-orange-100 text-orange-800 rounded-full text-sm';
+    return 'bg-yellow-100 text-yellow-800 rounded-full text-sm';
   }
 }

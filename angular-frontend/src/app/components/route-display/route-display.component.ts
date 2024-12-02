@@ -30,8 +30,8 @@ export class RouteDisplayComponent implements OnInit, OnChanges {
   @Input() startLocation: string = '';
   @Input() destinationLocation: string = '';
   @Input() isLoading = false;
-  @Input() topCrimes: [string, number][] = [];
-
+// In route-display.component.ts
+  @Input() topCrimes: string[] = []; // Change type from [string, number][] to string[]
   @ViewChild(MatSort) sort!: MatSort;
 
   displayedColumns: string[] = ['id', 'crimeScore', 'distance', 'duration'];
