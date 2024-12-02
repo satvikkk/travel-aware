@@ -45,6 +45,7 @@ def get_route():
         destination_location = data.get('destination_location')
         time_filter = data.get('time_filter', 'all_time')
         user_demographics = data.get('user_demographics', {})
+        preference = user_demographics.get('preference', 0.5)  # Default preference value, 0.5 if not provided
 
         start_coords = geocode_location(start_location)
         end_coords = geocode_location(destination_location)
@@ -71,16 +72,20 @@ def get_route():
             travel_time=user_demographics.get('travelTime')
         )
 
+        # Calculate crime scores for routes based on user demographics
         crime_scores = calculate_crime_scores(routes, filtered_crime_data, route_distances, top_crimes)
+
+        # Calculate suitability scores based on the user's preference for speed or safety
+        suitability_scores = calculate_suitability_scores(crime_scores, route_durations, preference)
 
         response_data = {
             "routes": [{
                 "coordinates": route,
-                "crime_score": score,
+                "crime_score": score,  # Replaced crime_score with suitability_score
                 "distance": distance,  # In kilometers
                 "duration": duration   # In seconds
-            } for route, score, distance, duration in zip(routes, crime_scores, route_distances, route_durations)],
-            "crime_scores": crime_scores,
+            } for route, score, distance, duration in zip(routes, suitability_scores, route_distances, route_durations)],
+            "crime_scores": suitability_scores,
             "route_distances": route_distances,  # In kilometers
             "route_durations": route_durations,  # In seconds
             "top_crimes": top_crimes
@@ -106,6 +111,24 @@ def add_header(response):
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '-1'
     return response
+
+def calculate_suitability_scores(crime_scores, durations, preference):
+    suitability_scores = []
+
+    # Inverse values: lower duration/crime score -> higher suitability
+    for i in range(len(crime_scores)):
+        inv_dur = 1 / durations[i]  # Inverse of duration
+        inv_crime = 1 / crime_scores[i]  # Inverse of crime score
+        
+        # Weighted combination of duration and crime score
+        score = (preference * inv_dur) + ((1 - preference) * inv_crime)
+        suitability_scores.append(score)
+    
+    # Normalize scores to sum to 1
+    total_score = sum(suitability_scores)
+    normalized_scores = [score / total_score for score in suitability_scores]
+    
+    return normalized_scores
 
 def get_top_crimes(data, age, gender, travel_time):
     # Categorize age into 10-year intervals
